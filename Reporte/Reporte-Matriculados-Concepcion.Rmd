@@ -1,0 +1,313 @@
+---
+title: "Modelo predictivo sobre estudiantes universitarios matriculados en Concepción"
+author: "Crsitian Soto - Jorge Millar"
+date: "2022-09-04"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Justificación del proyecto
+
+Durante mucho tiempo, Concepción ha sido el foco favorito para estudiar, tanto como para estudiantes dentro de la región como fuera de la región, ya que alberga una gran cantidad y variedad de universidades, pero nos vemos enfrentados a los problemas al albergar a ese gran cúmulo de estudiantes, ya que al ser bastantes universitarios no existe o no hay tantos arriendos de habitaciones, casas o departamentos disponibles en determinados sectores. Es por eso que nuestro proyecto se enfoca en esta problemática, por lo que necesitamos saber qué sectores son más demandados dentro de Concepción llevando una estadística de éstos para proyectarlos a futuro.
+
+A continuación se mostraran los pasos que se deben realizar:
+
+#### Paso 1:
+
+Obtener la Ubicación de Concepción, gracias a la latitud y longitud
+
+```{r eval=FALSE, include=TRUE}
+mapa <- leaflet() %>% setView(lng = -73.0497700, lat = -36.8269900, zoom = 14)
+```
+
+#### Paso 2:
+
+Dibujamos el mapa y lo guardamos
+
+```{r eval=FALSE, include=TRUE}
+concepcion <- mapa %>% addTiles() %>% addProviderTiles(providers$CartoDB.Positron)
+```
+
+![***Imagen 1:** Mapa de Concepción.*](images/Mapa%20Concepcion.png){style="color: gray;"}
+
+#### Paso 3:
+
+Seleccionar el archivo MatriculadosConcepcion.csv dentro de la carpeta Archivos, el cual contiene un listado de todos los matriculados en las universidades dentro de Concepción, con un rango de 2019 al 2022. Este CSV contiene la siguiente información: age, universidad, comuna, matricula total, latitud, longitud.
+
+```{r eval=FALSE, include=TRUE}
+matriculados_totales <- file.choose()
+matriculados_totales <- read_csv(matriculados_totales)
+```
+
+| age  |   universidad    |   comuna   | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:----------:|:--------------:|:---------:|:---------:|
+| 2019 | U. DE CONCEPCIÓN | Concepción |     20879      | -36.82946 | -73.03418 |
+| 2019 |  U. BOLIVARIANA  | Concepción |      402       | -36.82924 | -73.05669 |
+| 2019 |  U. DEL BÍO-BÍO  | Concepción |      7021      | -36.82249 | -73.01327 |
+| ...  |       ...        |    ...     |      ...       |    ...    |    ...    |
+
+***Tabla 1:** Matriculados el año 2019.*
+
+#### Paso 4:
+
+Separamos los datos según la cantidad de matriculados en cada año, esto lo hacemos mas que nada para no tener que seleccionar archivos CSV por separado.
+
+```{r eval=FALSE, include=TRUE}
+matriculados_2022 <- matriculados_totales[1:18, ]
+matriculados_2021 <- matriculados_totales[19:36, ]
+matriculados_2020 <- matriculados_totales[37:55, ]
+matriculados_2019 <- matriculados_totales[56:73, ]
+```
+
+| age  |   universidad    |   comuna   | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:----------:|:--------------:|:---------:|:---------:|
+| 2019 | U. DE CONCEPCIÓN | Concepción |     20879      | -36.82946 | -73.03418 |
+| 2019 |  U. BOLIVARIANA  | Concepción |      402       | -36.82924 | -73.05669 |
+| ...  |       ...        |    ...     |      ...       |    ...    |    ...    |
+
+***Tabla 2:** Matriculados el año 2019.*
+
+| age  |   universidad    |   comuna   | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:----------:|:--------------:|:---------:|:---------:|
+| 2020 | U. DE CONCEPCIÓN | Concepción |     21001      | -36.82946 | -73.03418 |
+| 2020 | U. LA REPÚBLICA  | Concepción |      305       | -36.82864 | -73.05506 |
+| ...  |       ...        |    ...     |      ...       |    ...    |    ...    |
+
+***Tabla 3:** Matriculados el año 2020.*
+
+| age  |   universidad    |   comuna   | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:----------:|:--------------:|:---------:|:---------:|
+| 2021 | U. DE CONCEPCIÓN | Concepción |     22391      | -36.82946 | -73.03418 |
+| 2021 |  U. BOLIVARIANA  | Concepción |      136       | -36.82924 | -73.05669 |
+| ...  |       ...        |    ...     |      ...       |    ...    |    ...    |
+
+***Tabla 4:** Matriculados el año 2021.*
+
+| age  |   universidad    |   comuna   | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:----------:|:--------------:|:---------:|:---------:|
+| 2022 | U. DE CONCEPCIÓN | Concepción |     22816      | -36.82946 | -73.03418 |
+| 2022 |  U. BOLIVARIANA  | Concepción |       59       | -36.82924 | -73.05669 |
+| ...  |       ...        |    ...     |      ...       |    ...    |    ...    |
+
+***Tabla 5:** Matriculados el año 2022.*
+
+#### Paso 5:
+
+Ordenamos el data según la cantidad de matriculados totales por universidad, o sea se ordenaradan con la universidad que tenga una mayor cantidad de matriculados a las que tengan un menor cantidad de matriculados.
+
+```{r eval=FALSE, include=TRUE}
+matriculados_2019 <- matriculados_2019[order(matriculados_2019$matriculatotal, decreasing = TRUE), ]
+matriculados_2020 <- matriculados_2020[order(matriculados_2020$matriculatotal, decreasing = TRUE), ]
+matriculados_2021 <- matriculados_2021[order(matriculados_2021$matriculatotal, decreasing = TRUE), ]
+matriculados_2022 <- matriculados_2022[order(matriculados_2022$matriculatotal, decreasing = TRUE), ]
+```
+
+| age  |   universidad    |   comuna   | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:----------:|:--------------:|:---------:|:---------:|
+| 2019 | U. DE CONCEPCIÓN | Concepción |     20879      | -36.82946 | -73.03418 |
+| 2019 | U. SAN SEBASTIÁN | Concepción |     11031      | -36.82924 | -73.05669 |
+| ...  |       ...        |    ...     |      ...       |    ...    |    ...    |
+
+***Tabla 6:** Matriculados el año 2019.*
+
+| age  |   universidad    |   comuna   | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:----------:|:--------------:|:---------:|:---------:|
+| 2020 | U. DE CONCEPCIÓN | Concepción |     21001      | -36.82946 | -73.03418 |
+| 2020 | U. SAN SEBASTIÁN | Concepción |     11573      | -36.82924 | -73.05669 |
+| ...  |       ...        |    ...     |      ...       |    ...    |    ...    |
+
+***Tabla 7:** Matriculados el año 2020.*
+
+| age  |   universidad    |   comuna   | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:----------:|:--------------:|:---------:|:---------:|
+| 2021 | U. DE CONCEPCIÓN | Concepción |     22391      | -36.82946 | -73.03418 |
+| 2021 | U. SAN SEBASTIÁN | Concepción |     12484      | -36.82924 | -73.05669 |
+| ...  |       ...        |    ...     |      ...       |    ...    |    ...    |
+
+***Tabla 8:** Matriculados el año 2021.*
+
+| age  |   universidad    |   comuna   | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:----------:|:--------------:|:---------:|:---------:|
+| 2022 | U. DE CONCEPCIÓN | Concepción |     22816      | -36.82946 | -73.03418 |
+| 2022 | U. SAN SEBASTIÁN | Concepción |     13194      | -36.82924 | -73.05669 |
+| ...  |       ...        |    ...     |      ...       |    ...    |    ...    |
+
+***Tabla 9:** Matriculados el año 2022.*
+
+#### Paso 6:
+
+Añadiremos algunos estilos en CSS, con la funcionalidad de poder mostrar un titulo en los mapas generados.
+
+```{r eval=FALSE, include=TRUE}
+tag.map.title <- tags$style(HTML("
+  .leaflet-control.map-title { 
+    transform: translate(-50%,20%);
+    position: fixed !important;
+    left: 50%;
+    text-align: center;
+    padding-left: 10px; 
+    padding-right: 10px; 
+    background: rgba(255,255,255,0.75);
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 26px;
+  }
+"))
+```
+
+#### Paso 7:
+
+Generamos los mapas respecto al año y lo guardaremos en una variable, en este caso generaremos un mapa en la ciudad de Concepción, añadiendo circulos a éste mismo el cual al presionarlos mostrara la información de esa casa de estudio (nombre de la universidad, matriculados totales, año de matricula).
+
+```{r eval=FALSE, include=TRUE}
+grafico_matriculados_2019 <- concepcion %>% addCircles(data = matriculados_2019, lat = ~latitud, lng = ~longitud, radius = ~sqrt(matriculatotal)*9, popup = paste("<b>",matriculados_2019$universidad,"</b></br>",
+                                                                                                                                                                  "<b>Total matriculados: </b>",matriculados_2019$matriculatotal,"</br>",
+                                                                                                                                                                  "<b>Año: </b>", matriculados_2019$age
+), color = "#E85D04", stroke = FALSE, fillOpacity = 0.4, dashArray = NULL, label = ~htmlEscape(universidad),  group = "Matricula Total") %>%
+  addTiles() %>%
+  addControl(tags$div(tag.map.title, HTML("Matriculados 2019")) , position = "topleft", className="map-title")
+```
+
+![***Imagen 2:** Matriculados totales el año 2019.*](images/Matriculados%202019.png){style="color: gray;"}
+
+![***Imagen 3:** Visualización al hacer click en alguna universidad (diametro en metros, según la cantidad de matriculados).*](images/Matriculados%202019%20Click.png){style="color: gray;"}
+
+**Repetiremos** el mismo paso anterior con los siguientes matriculados de los **años siguientes**, hasta llegar al año 2022. Solo se debe cambiar el `grafico_matriculados_2019` en todos los puntos que salgan del codigo anterior por `grafico_matriculados_AÑO`.
+
+#### Paso 8:
+
+Creamos la regresión lineal simple con la funcion lm (linear model) el cual ajustara un modelo lineal. Esta sintaxis esta dividad en el lado izquierdo (variable dependiente) y lado derecho (variable independiente), opcionalmente podemos visualizar el modelo con summary el cual regresa el sumario del modelo `summary(regresion)`.
+
+```{r eval=FALSE, include=TRUE}
+regresion <- lm(matriculatotal ~ age + universidad, data=matriculados_totales)
+```
+
+``` {.R style="color: gray; background-color:#ffff;"}
+Call:
+lm(formula = matriculatotal ~ age + universidad, data = matriculados_totales)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-960.35 -181.88   12.13  153.15 1044.35 
+
+Coefficients:
+                                                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                                       -104337.80   90028.63  -1.159 0.251676    
+age                                                    52.77      44.56   1.184 0.241603    
+universidadI.P. AIEP                                 2175.25     298.90   7.278 1.61e-09 ***
+universidadI.P. DEL VALLE CENTRAL                    -156.75     298.90  -0.524 0.602172    
+universidadI.P. DIEGO PORTALES                      -1329.75     298.90  -4.449 4.46e-05 ***
+universidadI.P. DUOC UC                              4839.00     298.90  16.189  < 2e-16 ***
+universidadI.P. GUILLERMO SUBERCASEAUX              -1777.50     298.90  -5.947 2.20e-07 ***
+universidadI.P. IPEGE                               -1239.25     298.90  -4.146 0.000123 ***
+universidadI.P. SANTO TOMÁS                          -519.25     298.90  -1.737 0.088161 .  
+universidadI.P. VIRGINIO GÓMEZ                       1733.75     298.90   5.800 3.75e-07 ***
+universidadU. ANDRÉS BELLO                           4234.75     298.90  14.168  < 2e-16 ***
+universidadU. BOLIVARIANA                           -2059.75     298.90  -6.891 6.75e-09 ***
+universidadU. CATÓLICA DE LA SANTÍSIMA CONCEPCIÓN    6847.25     298.90  22.908  < 2e-16 ***
+universidadU. DE CONCEPCIÓN                         19494.50     298.90  65.221  < 2e-16 ***
+universidadU. DE LAS AMÉRICAS                        1233.50     298.90   4.127 0.000131 ***
+universidadU. DEL BÍO-BÍO                            4408.25     298.90  14.748  < 2e-16 ***
+universidadU. DEL DESARROLLO                         1786.00     298.90   5.975 1.98e-07 ***
+universidadU. LA REPÚBLICA                          -1945.87     473.13  -4.113 0.000137 ***
+universidadU. SAN SEBASTIÁN                          9793.25     298.90  32.764  < 2e-16 ***
+universidadU. SANTO TOMÁS                            -602.75     298.90  -2.017 0.048821 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 422.7 on 53 degrees of freedom
+Multiple R-squared:  0.9951,    Adjusted R-squared:  0.9933 
+F-statistic: 565.9 on 19 and 53 DF,  p-value: < 2.2e-16
+```
+
+*Aquí podemos ver la efectividad del modelo el cual va de 0-100% (mientras mayor sea el porcentaje, mayor será la efectividad)* *`Multiple R-squared: 0.9951, Adjusted R-squared: 0.9933`*
+
+#### Paso 9:
+
+Cargamos el archivo 2023CONCE.csv ubicado dentro de la carpeta Archivos, el cual contiene las siguientes columnas: age, universidad, comuna, matricula total, latitud, longitud. La columna age contiene '2023' el cual hace referencia al año al cual sacaremos el modelo predictivo, y la columna matricula total se encuentra vacía ya que se llenara con la predicción que realizaremos en el siguiente paso.
+
+```{r eval=FALSE, include=TRUE}
+matriculados_2023 <- file.choose()
+matriculados_2023 <- read_csv(matriculados_2023)
+```
+
+| age  |   universidad    |   comuna   | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:----------:|:--------------:|:---------:|:---------:|
+| 2023 | U. DE CONCEPCIÓN | Concepción |      *NA*      | -36.82946 | -73.03418 |
+| 2023 |  U. BOLIVARIANA  | Concepción |      *NA*      | -36.82924 | -73.05669 |
+| ...  |       ...        |    ...     |      ...       |    ...    |    ...    |
+
+***Tabla 10:** Esta tabla almacenara el modelo predictivo.*
+
+#### Paso 10:
+
+Generamos el modelo de predicción en el cual utilizaremos la regresión lineal que creamos en el paso 8 y el CSV (data) que importamos en el paso 9.
+
+```{r eval=FALSE, include=TRUE}
+prediccion <- predict(regresion, matriculados_2023)
+```
+
+``` {.illustration style="color: gray; background-color:#ffff;"}
+1: 21903.6667 - 2: 349.4167 - 3: 6817.4167 - 4: 3642.6667 - 5: 6643.9167 - 6: 4195.1667 - 
+7: 12202.4167 - 8: 1806.4167 - 9: 9256.4167 - 10: 631.6667 - 11: 7248.1667 - 12: 1169.9167 -
+13: 1889.9167 - 14: 1079.4167 - 15: 2252.4167 - 16: 4142.9167 - 17: 4584.4167 - 18: 2409.1667
+```
+
+#### Paso 11:
+
+Guardamos el data completo con la información obtenida en el modelo predictivo, este data lo utilizaremos para generar el mapa de la predicción como lo realizamos en el paso 7.
+
+```{r eval=FALSE, include=TRUE}
+matriculados_2023MP <- data.frame(age=2023, universidad=matriculados_2023$universidad, matriculatotal=prediccion, latitud=matriculados_2023$latitud, longitud=matriculados_2023$longitud)
+```
+
+| age  |   universidad    | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:--------------:|:---------:|:---------:|
+| 2023 | U. DE CONCEPCIÓN |     21903      | -36.82946 | -73.03418 |
+| 2023 |  U. BOLIVARIANA  |      349       | -36.82924 | -73.05669 |
+| ...  |       ...        |      ...       |    ...    |    ...    |
+
+***Tabla 11:** Data final con el modelo predictivo para la cantidad de matriculados en el año 2023.*
+
+#### Paso 12:
+
+Ordenamos el data como lo realizamos en el paso 5.
+
+```{r eval=FALSE, include=TRUE}
+matriculados_2023MP <- matriculados_2023MP[order(matriculados_2023MP$matriculatotal, decreasing = TRUE), ]
+```
+
+| age  |   universidad    | matriculatotal |  latitud  | longitud  |
+|:----:|:----------------:|:--------------:|:---------:|:---------:|
+| 2023 | U. DE CONCEPCIÓN |     21903      | -36.82946 | -73.03418 |
+| 2023 | U. SAN SEBASTIÁN |     12202      | -36.82924 | -73.05669 |
+| ...  |       ...        |      ...       |    ...    |    ...    |
+
+***Tabla 12:** Data final ordenado por matricula total.*
+
+#### Paso 13:
+
+Graficiar y mostrar el mapa este es el paso final en el cual repetimos el paso numero 7 como lo realizamos con los demas mapas.
+
+![***Imagen 4:** Matriculados totales el año 2023 obtenidos con el modelo predictivo.*](images/Matriculados%202023.png){style="color:gray;"}
+
+#### Referencias
+
+-   <https://rpubs.com/Joaquin_AR/255596>
+
+-   <https://datanalytics.com/libro_r/regresion-lineal-1.html>
+
+-   <https://rstudio.github.io/leaflet/>
+
+-   <https://rpubs.com/paraneda/predictivo#:~:text=Los%20modelos%20predictivos%20identifican%20relaciones,las%20operaciones%20de%20la%20organizaci%C3%B3n.>
+
+-   <https://r-graph-gallery.com/map.html>
+
+-   <https://fhernanb.github.io/libro_regresion/predict.html>
+
+-   <https://www.cienciadedatos.net/documentos/41_machine_learning_con_r_y_caret>
